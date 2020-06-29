@@ -86,17 +86,33 @@ namespace PortScanner
             }
         }
 
-        public void ScanAsync()
+        public async Task ScanAsync(int ConcurrentTaskCount)
         {
             _openPorts = new List<ushort>();
             _closedPorts = new List<ushort>();
 
-            for (ushort i = _scanPortMin;i <= _scanPortMax;i++)
+            ushort counter = _scanPortMin;
+            List<Task> tasks = new List<Task>(ConcurrentTaskCount);
+
+            //Init the list
+            for (int a = 0; a < ConcurrentTaskCount; a++)
+                tasks.Add(Task.Run(() => { }));
+
+            while (counter <= _scanPortMax)
             {
-                //Fire and forget?
-                CheckPortAsync(i);
-            }
-            Console.WriteLine("here");
+                for(int a = 0; a < ConcurrentTaskCount; a++)
+                {
+                    if (tasks[a] == null || tasks[a].IsCompleted)
+                    {
+                        if (counter <= _scanPortMax)
+                        {
+                            tasks[a] = CheckPortAsync(counter);
+                            counter++;
+                        }
+                    }
+                }
+                await Task.WhenAny(tasks.ToArray());
+            } 
         }
 
         private async Task CheckPortAsync(ushort port)

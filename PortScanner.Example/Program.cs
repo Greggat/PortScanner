@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace PortScanner.Example
 {
@@ -11,16 +12,20 @@ namespace PortScanner.Example
 
         static void OnClosedPortScanned(ushort port)
         {
-            Console.WriteLine($"Closed Port: {port}");
+            //Console.WriteLine($"Closed Port: {port}");
         }
 
         static void Main(string[] args)
+        {
+            MainAsync().GetAwaiter().GetResult();
+        }
+        private static async Task MainAsync()
         {
             PortScanner scanner = new PortScanner("google.com", 1, 65535);
             scanner.OpenPortScanned += OnOpenPortScanned;
             scanner.ClosedPortScanned += OnClosedPortScanned;
 
-            scanner.ScanAsync();
+            await scanner.ScanAsync(1000);
 
             Console.ReadLine();
         }
